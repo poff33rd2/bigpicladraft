@@ -37,7 +37,7 @@ function initializeLoadingStates() {
     backdropContainer.hide();
     mediaContainer.hide();
     mediaItemsTitle.hide();
-    $w("#section4").collapse();
+    $w("#campaignMediaGallery").collapse();
 
     // Add skeleton classes
     backdropTitle.customClassList.add("skeleton");
@@ -47,8 +47,25 @@ function initializeLoadingStates() {
 async function fetchCampaignAssets(ctx) {
     const queryParams = wixLocation.query || {};
     const campaignId = queryParams.campaignId;
-    if (campaignId) {
-        // Use the campaignId value here
+    if (!campaignId) {
+        console.error("Missing or empty 'campaignId' query parameter");
+        $w("#errorText").text = "No campaign specified. Go to Big Pic LA homepage";
+        $w("#errorDiv").hide();
+        $w("#heroSection").hide();
+        $w("#campaignMediaGallery").hide();
+
+        
+        // Clean up loading states and show a friendly message
+        // backdropTitle.customClassList.remove("skeleton");
+        // campaignThumbnail.customClassList.remove("skeleton");
+        // $w('#repeaterCampaign').data = [];
+        // backdropTitle.text = "No campaign specified";
+        // backdropTitle.show();
+        // backdropContainer.show();
+        // $w("#loadingHtml").hide();
+
+        return;
+    } else {
         console.log("Received campaignId:", campaignId);
     }
     try {
@@ -62,8 +79,16 @@ async function fetchCampaignAssets(ctx) {
             throw new Error("No album ID found in context");
         }
 
-        const details = await getVimeoShowcaseDetails(albumId);
-        if (!details) {
+        let details;
+        try {
+            details = await getVimeoShowcaseDetails(albumId);
+        } catch (err) {
+            console.error(`Invalid campaignId passed to getVimeoShowcaseDetails (${albumId}):`, err);
+            throw err;
+        }
+
+        if (!details || details.error) {
+            console.error("getVimeoShowcaseDetails returned invalid details for campaignId:", albumId, details);
             throw new Error("No showcase details found");
         }
 
@@ -139,7 +164,7 @@ async function fetchCampaignAssets(ctx) {
         // Set up repeater item handling
         $w('#repeaterCampaign').onItemReady(($item, itemData) => {
             console.log(`Item ready: ${itemData.title} (${itemData.type} - ${itemData.contentType})`);
-            $w("#section4").expand();
+            $w("#campaignMediaGallery").expand();
 
             const titleText = $item('#itemTitle'); // Fixed: should be titleText, not mediaItemsTitle
             const thumbImage = $item('#thumbImage169');

@@ -49,8 +49,8 @@ $w.onReady(async () => {
 
 // ==================== HERO VIDEO PLAYER ====================
 async function loadHeroVideo() {
-    // const folderId = "26731140";
-    const folderId = "2673114";
+    const folderId = "26731140";
+    // const folderId = "2673114";
 
     try {
         const { videos } = await getVimeoVideosFromFolder(folderId);

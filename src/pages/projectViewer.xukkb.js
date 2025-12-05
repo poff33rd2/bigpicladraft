@@ -62,11 +62,36 @@ async function fetchCampaignAssets(ctx) {
 
         const albumId = getCampaignId(ctx);
         if (!albumId) {
-            throw new Error("No album ID found in context");
+            console.error("Missing or empty 'campaignId' in lightbox context", ctx);
+
+            // Show friendly UI state for missing campaign id
+            $w('#repeaterCampaign').data = [];
+            backdropTitle.customClassList.remove("skeleton");
+            campaignThumbnail.customClassList.remove("skeleton");
+            backdropTitle.text = "No campaign specified";
+            backdropTitle.show();
+            backdropContainer.show();
+            return;
         }
 
-        const details = await getVimeoShowcaseDetails(albumId);
+        let details;
+        try {
+            details = await getVimeoShowcaseDetails(albumId);
+        } catch (err) {
+            console.error(`Invalid campaignId passed to getVimeoShowcaseDetails (${albumId}):`, err);
+
+            // Show friendly UI state for invalid campaign id
+            $w('#repeaterCampaign').data = [];
+            backdropTitle.customClassList.remove("skeleton");
+            campaignThumbnail.customClassList.remove("skeleton");
+            backdropTitle.text = "Invalid campaign specified";
+            backdropTitle.show();
+            backdropContainer.show();
+            return;
+        }
+
         if (!details) {
+            console.error("getVimeoShowcaseDetails returned no details for campaignId:", albumId, details);
             throw new Error("No showcase details found");
         }
 
